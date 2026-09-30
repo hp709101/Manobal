@@ -1,0 +1,143 @@
+import React, { useState } from 'react';
+import { api } from '../../services/api';
+import { X, Send, Hospital, AlertCircle } from 'lucide-react';
+
+interface ReferralModalProps {
+  caseId: string | null;
+  onClose: () => void;
+  onSuccess: () => void;
+}
+
+export const ReferralModal: React.FC<ReferralModalProps> = ({
+  caseId,
+  onClose,
+  onSuccess,
+}) => {
+  const [target, setTarget] = useState('Regimental Medical Officer (RMO) - Unit Aid Post');
+  const [priority, setPriority] = useState('Urgent');
+  const [notes, setNotes] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  if (!caseId) return null;
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSubmitting(true);
+    setError(null);
+    try {
+      await api.referCase(caseId, {
+        referral_target: target,
+        priority: priority,
+        notes: notes.trim(),
+      });
+      onSuccess();
+      onClose();
+    } catch (err: any) {
+      setError(err.message || 'Failed to submit referral');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-3 sm:p-4 animate-in fade-in">
+      <div className="bg-white border border-slate-200 rounded-3xl max-w-lg w-full p-4 sm:p-6 shadow-2xl relative text-slate-900 max-h-[92vh] overflow-y-auto">
+        <button
+          onClick={onClose}
+          className="absolute top-4 right-4 text-slate-400 hover:text-slate-700 transition-colors p-1"
+        >
+          <X className="w-5 h-5 sm:w-6 sm:h-6" />
+        </button>
+
+        <div className="flex items-center gap-3 mb-4 pr-8">
+          <div className="w-10 h-10 rounded-2xl bg-sky-50 border border-sky-200 flex items-center justify-center text-sky-700 shrink-0">
+            <Hospital className="w-5 h-5" />
+          </div>
+          <div>
+            <h3 className="text-sm sm:text-base font-bold text-slate-900 leading-tight">Initiate Medical / Specialist Referral</h3>
+            <p className="text-[11px] sm:text-xs text-slate-500">Formal Welfare Handover to Defence Health Channels</p>
+          </div>
+        </div>
+
+        {error && (
+          <div className="mb-4 p-3 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-800 break-words">
+            {error}
+          </div>
+        )}
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+              Referral Target Entity
+            </label>
+            <select
+              value={target}
+              onChange={(e) => setTarget(e.target.value)}
+              className="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-xs text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-sky-500"
+            >
+              <option value="Regimental Medical Officer (RMO) - Unit Aid Post">Regimental Medical Officer (RMO) - Unit Aid Post</option>
+              <option value="Command Military Hospital (MH) - Psychiatric Dept">Command Military Hospital (MH) - Psychiatric Dept</option>
+              <option value="Military Dental & Sleep Wellness Clinic">Military Dental & Sleep Wellness Clinic</option>
+              <option value="External Crisis Centre (Tele-MANAS Specialist Referral)">External Crisis Centre (Tele-MANAS Specialist Referral)</option>
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+              Referral Priority Level
+            </label>
+            <div className="grid grid-cols-3 gap-2">
+              {['Routine', 'Urgent', 'Emergency'].map((pr) => (
+                <button
+                  type="button"
+                  key={pr}
+                  onClick={() => setPriority(pr)}
+                  className={`py-2 text-[11px] sm:text-xs font-bold rounded-xl border transition-all truncate ${
+                    priority === pr
+                      ? pr === 'Emergency'
+                        ? 'bg-rose-50 border-rose-400 text-rose-800 ring-2 ring-rose-500/20'
+                        : 'bg-sky-50 border-sky-400 text-sky-800 ring-2 ring-sky-500/20'
+                      : 'bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100'
+                  }`}
+                >
+                  {pr}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+              Confidential Clinical Summary for Medical Officer
+            </label>
+            <textarea
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              placeholder="e.g. Request formal clinical review for severe sleep disruption and high stress fatigue following high-altitude patrol..."
+              rows={3}
+              className="w-full bg-slate-50 border border-slate-300 rounded-2xl p-3 text-xs text-slate-900 placeholder-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-sky-500"
+            />
+          </div>
+
+          <div className="pt-3 flex flex-col sm:flex-row justify-end gap-2 border-t border-slate-100">
+            <button
+              type="button"
+              onClick={onClose}
+              className="w-full sm:w-auto px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-semibold transition-colors text-center"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={submitting}
+              className="w-full sm:w-auto px-5 py-2.5 bg-sky-600 hover:bg-sky-700 text-white rounded-xl text-xs font-bold shadow-md shadow-sky-600/20 transition-all disabled:opacity-50 text-center"
+            >
+              {submitting ? 'Dispatching...' : 'Dispatch Referral'}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+};

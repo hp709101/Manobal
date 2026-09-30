@@ -1,0 +1,467 @@
+Manobal
+Three-Dashboard Architecture, Features & Secure Tech Stack
+SIH26186 · AI-Based Predictive Personnel Stress and Welfare Monitoring System for Uniformed Forces · Design document. All content is defensive (protecting data); it contains no offensive or hacking techniques.
+1. How to read this document
+Every feature below carries a marker so you can see instantly what came from you and what was added as a suggestion.
+Marker
+Meaning
+YOUR FEATURE
+A feature you specified directly.
+SUGGESTED
+A feature I added to make the product safer, more complete or easier to defend in front of evaluators. Keep, edit or drop each one.
+YOUR FEATURE · HEALTH SYNC
+Your idea of connecting Google Fit and other health-tracking apps (sleep and other signals).
+SUGGESTED · HEALTH SYNC
+My additions that build on your health-tracker idea (consent controls, how the data is used, where it is shown).
+Assumptions I made, please confirm:
+"sus" is read as "Suspected". The five status values are: Normal, Moderate, Critical, Suspected, Unspecified.
+"Admin/commander" is one dashboard with two permission levels (Admin manages data and users; Commander manages their own unit).
+"Officer" in dashboard 3 means any uniformed person (soldier or officer) using the self-service portal.
+2. Product at a glance
+Dashboard 1: Admin / Commander
+Dashboard 2: Welfare Officer / Counsellor
+Dashboard 3: Uniformed Personnel Portal
+Main question
+Who is in my unit, what is their situation, and what does their HR data say?
+Who needs support, how urgent is it, and did our help work?
+How am I doing, and where can I get help privately?
+Main users
+Unit commanders, system administrators
+Welfare officers, counsellors
+Every soldier / officer
+Data it creates
+Unit records, remarks, observed status, HRMS uploads
+Assessed status, confidential case notes, outcomes
+Self-assessments, chat sessions, optional health-tracker data
+Data it must NOT see
+Counsellor case notes, chat transcripts, raw health data
+Commander remarks are visible only as permitted
+Anyone else's data
+3. Design concerns to decide on now
+Your new approach lets commanders and admins see and label individuals. That is a real shift from our earlier "commanders see aggregates only" rule, and evaluators or defence welfare experts are likely to raise it. Here are the points I would settle early, with a safeguard for each that keeps your feature intact.
+Concern
+Why it matters
+Suggested safeguard
+Commanders or admins labelling someone "stress" or "depression"
+Those are clinical terms. A non-clinician label can be wrong and can stigmatise a person.
+Keep your status field, but show two values: Observed status (set by commander/admin) and Assessed status (set only by a counsellor). Call them welfare-status labels, not diagnoses.
+Individual data now visible to the chain of command
+People may fear that a label affects postings or promotion.
+Written purpose-limitation rule plus technical enforcement: no export path or integration from Manobal into any evaluation, posting or promotion system. Every view is audit-logged.
+Free-text remarks are sensitive
+A remark about a bereavement is personal and could leak or be misused.
+Structured tags plus free text, remark visibility levels, expiry and review reminders, and encryption of remark text.
+Chatbot alerting the welfare officer
+If people discover an alert they did not expect, trust collapses and they stop using it.
+Tell users upfront when an alert will be sent. Send the minimum (tier, reason category, time), not the transcript.
+Chatbot is not a clinician
+An AI can misjudge distress in either direction.
+Crisis detection with human follow-up, helpline screen, clear "not a substitute for professional care" wording, and review of the logic by a mental health professional.
+Health-tracker data is highly personal
+Sleep and heart data reveal a lot about a person.
+Opt-in per data type, daily summaries only, on-device processing where possible, one-tap disconnect and delete, never shown raw to commanders.
+4. Dashboard 1: Admin / Commander
+Purpose: manage units and personnel records, add remarks, set observed status, and bring HRMS data into each person's stats.
+#
+Feature
+Marker
+What it does
+1
+Unit groups
+YOUR FEATURE
+Army units listed as groups, each with the unit name and unit details (strength, location, commanding officer and similar).
+2
+Personnel list per unit
+YOUR FEATURE
+Inside each unit, every soldier/officer appears with their name and stats.
+3
+Remarks on a person
+YOUR FEATURE
+Commander/admin can add a remark, for example "lost family member in a road accident". The system reads the remark to understand the effect on the person's wellbeing.
+4
+Stress/depression status field
+YOUR FEATURE
+Commander and admin can set status in the officer's stats: Normal / Moderate / Critical / Suspected / Unspecified.
+5
+HRMS report upload (Admin)
+YOUR FEATURE
+Admin adds each person's HRMS report. A unique attribute (service ID) links the report to the right person and fills their stats automatically.
+6
+Individual stats dashboard
+YOUR FEATURE
+A proper dashboard per person: HRMS metrics, current status, remark timeline, trends.
+7
+Structured remark tags + free text
+SUGGESTED
+Tags such as bereavement, family illness, financial strain, conflict, injury, deployment strain, alongside free text. Tags make the wellbeing inference far more reliable than free text alone.
+8
+Remark analysis with human confirmation
+SUGGESTED
+The system proposes a life-event severity from a remark. A welfare officer confirms it. The system never auto-labels anyone as depressed.
+9
+Observed vs Assessed status
+SUGGESTED
+Commander/admin set "Observed status". Only a counsellor sets "Assessed status". Both are shown side by side.
+10
+Status history with reason
+SUGGESTED
+Every change records who, when and why. A reason is mandatory when moving someone to Critical.
+11
+Bulk HRMS import with validation
+SUGGESTED
+CSV/Excel upload with schema checks, duplicate and mismatch report, a preview before committing, and rollback.
+12
+Protected unique ID
+SUGGESTED
+Service ID is stored tokenised/hashed as the join key and shown masked in the interface.
+13
+Unit analytics
+SUGGESTED
+Distribution of statuses, workload and leave-backlog charts, trends over time. Small-group exports are suppressed (k-anonymity).
+14
+Request welfare review
+SUGGESTED
+One click by a commander to route a person to the welfare officer's queue.
+15
+Remark visibility levels
+SUGGESTED
+Each remark is marked commander-only or shared-with-welfare.
+16
+Remark expiry and review
+SUGGESTED
+Reminders to review old remarks so outdated information does not linger.
+17
+Coarse health trend indicator
+SUGGESTED · HEALTH SYNC
+For consenting personnel only, a simple "sleep/activity trend: stable / declining / unavailable" chip. Never raw health data.
+18
+Admin and Commander permission split
+SUGGESTED
+Admin: users, HRMS data, configuration. Commander: own unit only.
+19
+Watermarked, restricted exports
+SUGGESTED
+Any report carries the viewer's identity and time, and exports are limited and logged.
+20
+Audit trail viewer
+SUGGESTED
+See who viewed or changed what, and when.
+5. Dashboard 2: Welfare Officer / Counsellor
+Purpose: see who needs support, act on it privately, and record outcomes.
+#
+Feature
+Marker
+What it does
+1
+Stress and anxiety level view
+YOUR FEATURE
+Welfare officers and counsellors see each person's level as Normal / Moderate / Critical / Suspected / Unspecified.
+2
+Extra soldier/officer details
+YOUR FEATURE
+More context per person: unit, posting, HRMS summary and the remarks they are allowed to see.
+3
+Alert inbox
+SUGGESTED
+Escalations from the chatbot and self-assessments, prioritised, with response-time (SLA) timers.
+4
+Explainable case view
+SUGGESTED
+Shows the top contributing factors in plain language (for example overtime, delayed leave, recent life event) instead of a bare score.
+5
+Confidential case notes
+SUGGESTED
+Counsellor-only notes that commanders and admins can never open.
+6
+Counselling requests and scheduling
+SUGGESTED
+Receives "talk to counsellor" requests from Dashboard 3 and books call, chat or in-person sessions.
+7
+Follow-up tracker and outcomes
+SUGGESTED
+Status of each case (resolved / ongoing / escalated) with overdue reminders. Outcomes later improve the model.
+8
+Sleep and activity trends
+SUGGESTED · HEALTH SYNC
+For consenting personnel, sleep and activity summaries shown as trends beside the case.
+9
+Referral workflow
+SUGGESTED
+Hand a case to a medical officer or an external professional with a logged referral.
+10
+Dismiss false positive
+SUGGESTED
+Close an alert as unwarranted with a required reason. This teaches the model.
+11
+Case handover
+SUGGESTED
+Transfer a case between counsellors with notes preserved.
+12
+Safe-messaging templates
+SUGGESTED
+Reviewed message templates for reaching out to someone respectfully.
+13
+Anonymised caseload analytics
+SUGGESTED
+Counts and trends for planning resources, with no names.
+6. Dashboard 3: Uniformed Personnel Portal
+Purpose: a private space where a person checks in on themselves, gets support from a chatbot, and reaches a counsellor when they want or need to.
+#
+Feature
+Marker
+What it does
+1
+Routine self-assessment
+YOUR FEATURE
+A short recurring test on stress and welfare issues.
+2
+Private support chatbot
+YOUR FEATURE
+The person shares what is on their mind and gets guidance without involving a counsellor or welfare officer.
+3
+Automatic escalation on serious risk
+YOUR FEATURE
+If the chatbot detects serious risk, it alerts the welfare officer and the person's stress-monitor status updates.
+4
+Talk to a counsellor
+YOUR FEATURE
+A clear option to connect to a counsellor at any time.
+5
+Connect Google Fit and other health trackers
+YOUR FEATURE · HEALTH SYNC
+The person links a health-tracking source so sleep and other useful signals flow into their wellbeing picture.
+6
+Upfront transparency notice
+SUGGESTED
+Plain-language screen explaining exactly when an alert is sent and who receives it.
+7
+Three-level chatbot response
+SUGGESTED
+Green: supportive guidance. Amber: suggests a counsellor and offers to notify with consent. Red: crisis screen plus immediate welfare alert (see section 8).
+8
+Crisis screen with helplines
+SUGGESTED
+Calm screen with national helplines (Tele-MANAS and KIRAN are commonly cited in India; verify current numbers before launch).
+9
+Minimal-disclosure alerts
+SUGGESTED
+An alert carries the risk tier, reason category and time. The full chat transcript is not shared unless the person agrees, except in an emergency, and that access is audited.
+10
+Personal wellbeing snapshot
+SUGGESTED
+Trends visible only to the person: mood, sleep, energy, check-in history.
+11
+Self-care library with gentle gamification
+SUGGESTED
+Breathing, grounding, sleep and cognitive exercises. Rewards effort, not lower scores. No leaderboards.
+12
+Private journal
+SUGGESTED
+Stored on the device, never uploaded.
+13
+Data control centre
+SUGGESTED
+See what is shared, revoke connections, download or delete data.
+14
+Granular health-sync toggles
+SUGGESTED · HEALTH SYNC
+Choose which data types to share (sleep, resting heart rate, steps). Each can be turned off separately.
+15
+Plain-language health insights
+SUGGESTED · HEALTH SYNC
+Explains trends such as "your sleep has dropped for two weeks" without diagnosing anything.
+16
+Multilingual and voice input
+SUGGESTED
+Hindi, English and regional languages, with voice for accessibility.
+17
+Offline-first web app (PWA)
+SUGGESTED
+Works with poor connectivity and syncs later.
+18
+Anonymous-first counsellor booking
+SUGGESTED
+Request a session without sharing identity until the person chooses to.
+19
+Emergency button
+SUGGESTED
+One tap to emergency contacts and helplines.
+20
+Duty-aware reminders
+SUGGESTED
+Nudges pause during operations or duty windows.
+7. Health-tracker integration (your Google Fit idea)
+Marker: YOUR FEATURE · HEALTH SYNC. This section explains how to build it safely and one technical correction.
+Important correction: Google Fit is being retired
+Google states that the Google Fit APIs, including the REST API, will only be supported until the end of 2026, and new developer sign-ups have been closed since 1 May 2024. Building on Google Fit directly would leave you with a dead integration. Google recommends Health Connect for on-device Android integration and the Google Health API for cloud-based use.
+Source: Android Developers, "Fit migration guide" and "Google Fit Migration FAQ" (developer.android.com).
+Source
+Platform
+Use in Manobal
+Health Connect
+Android
+Primary Android route. Reads sleep, heart rate and activity that the user's other apps and wearables already write there, with permissions the user controls.
+Apple HealthKit
+iOS
+Equivalent route for iPhone users.
+Google Health API
+Cloud / web
+Optional route for Fitbit and Google device data if you need server-to-server access.
+Aggregator (optional)
+Multi-brand
+A third-party wellness-data aggregator can cover many brands but adds a vendor that would handle sensitive data. For a defence context I would avoid it.
+What to read
+Sleep: duration, timing and consistency.
+Resting heart rate and, where available, heart-rate variability.
+Activity: steps and workouts.
+Where the data appears
+Place
+What is shown
+Dashboard 3 (the person)
+Full personal trends and plain-language insights.
+Dashboard 2 (welfare/counsellor)
+Sleep and activity trends beside a case, only for people who consented.
+Dashboard 1 (commander/admin)
+Only a coarse stable/declining/unavailable chip. Never raw data.
+Risk model
+One extra input feature, used only with consent.
+Rules that keep it safe
+Opt-in, per data type, with a clear explanation before connecting.
+Pull daily summaries, not continuous raw streams, and process on the device where possible.
+One tap to disconnect, and disconnecting can also delete stored health data.
+Treat wearable metrics as noisy hints, not diagnoses. A high heart rate can simply mean a hard workout.
+Never allow health data to feed any evaluation, posting or promotion system.
+8. Chatbot and escalation design
+Marker: the chatbot and its alert are YOUR FEATURE. The tiers, safeguards and review process below are SUGGESTED.
+Tier
+Typical signals
+Chatbot behaviour
+Alert to welfare officer
+Green
+Everyday stress, venting, tiredness
+Supportive guidance and self-care exercises
+None. Stays private.
+Amber
+Persistent low mood, ongoing sleep loss, feeling overwhelmed for days
+Gently suggests a counsellor and offers booking
+Only with the person's consent.
+Red
+Statements pointing to self-harm, harm to others, or acute crisis
+Stops normal chat, shows crisis screen and helplines, encourages immediate human contact
+Immediate alert as disclosed in the upfront notice. Human follow-up within a defined time.
+The escalation logic, the wording and the exercise content should be reviewed by a qualified mental health professional before any real use. For the hackathon, label the content "for demonstration".
+Keep the alert minimal: tier, reason category and time. Access to the transcript needs the person's consent or an audited emergency exception.
+Log every escalation and its human follow-up so response times can be measured.
+Never let the chatbot diagnose, prescribe or promise confidentiality it cannot keep.
+9. Recommended secure tech stack
+Marker: SUGGESTED. Chosen for security first, and to be buildable within a hackathon using Cursor.
+Layer
+Technology
+Security reason
+Web dashboards
+React + TypeScript (strict), Vite, Tailwind CSS, shadcn/ui
+Type safety reduces bugs. Strict Content-Security-Policy and no inline scripts reduce injection risk.
+Officer portal
+Installable web app (PWA) built with the same React code
+One codebase to secure. Encrypted local storage for offline data and journal.
+Backend API
+Python FastAPI with Pydantic validation
+Every request and response is schema-validated. Auto-generated API docs help testing.
+Identity and access
+Keycloak (OpenID Connect), MFA with TOTP or WebAuthn, short-lived tokens with refresh rotation
+Battle-tested identity server instead of hand-rolled login. Role-based access enforced on the server.
+Database
+PostgreSQL with separate schemas and DB roles for HR data and welfare data, row-level security
+Enforces who can read what inside the database, not only in application code.
+Field encryption
+AES-256-GCM envelope encryption for remarks, chat and case notes, keys in a KMS or HashiCorp Vault
+A database leak alone does not expose sensitive text.
+Chatbot
+Self-hosted open-weight LLM served on-premise (for example with vLLM), plus a guardrail layer and PII redaction (for example Microsoft Presidio)
+Sensitive conversations never leave your infrastructure. Guardrails handle crisis detection and refusals.
+Remark analysis
+Small local classifier or sentence-embedding model plus a rules layer
+Runs on-premise. Output is a suggestion for human confirmation.
+Risk model
+XGBoost + SHAP
+Interpretable, lightweight, retrains quickly. No GPU needed.
+Health data
+Health Connect (Android) and HealthKit (iOS) via the mobile/PWA layer
+User-controlled permissions. Daily summaries only.
+Transport and edge
+TLS 1.3, HSTS, reverse proxy (Nginx or Traefik) with a web application firewall and rate limiting
+Protects data in transit and blocks abusive traffic.
+Audit and monitoring
+Append-only audit log, OpenTelemetry, Wazuh or similar SIEM
+Every access is recorded, and unusual patterns such as bulk viewing raise alerts.
+Secure development
+Dependency scanning, Trivy (containers), Semgrep (code), OWASP ZAP (testing your own staging), secret scanning, pre-commit hooks
+Finds weaknesses before release. Test only systems you own or are authorised to test.
+Deployment
+Docker Compose for the demo. Kubernetes on MeghRaj or on-premise as the future roadmap
+Container isolation now, scalable hardening later.
+Security principles applied everywhere
+Least privilege and need-to-know: each role sees only what its job requires.
+Defence in depth: access control in the app, the database and the network.
+Privacy by design and data minimisation: collect less, keep it shorter, show only summaries.
+Zero trust: every request is authenticated and authorised, even inside the network.
+No path from welfare data to evaluation or promotion systems, enforced by architecture.
+Encrypted backups, tested restores, a documented retention and deletion policy.
+An incident response plan with breach notification steps.
+Defensive threat coverage
+Risk
+Control
+Stolen or guessed passwords
+MFA, rate limiting, lockout, breached-password checks.
+A user reading data beyond their role
+Server-side RBAC plus database row-level security, tested with automated authorisation tests.
+Insider snooping
+Full audit log, alerts on unusual access, watermarked exports, break-glass access that is time-limited and reviewed.
+Data leak from the database or backups
+Encryption at rest, field-level encryption, separate keys.
+Injection and web attacks
+Validated inputs, parameterised queries, output encoding, CSP, WAF.
+Chatbot misuse or data exposure
+On-premise model, PII redaction, guardrails, no training on user chats.
+Third-party or supply-chain weakness
+Pinned dependencies, scanning, minimal vendors.
+Compliance: have the design reviewed against India's Digital Personal Data Protection Act, 2023 and the data-handling rules that apply to the relevant force, ideally with legal counsel.
+10. Core data entities (high level)
+Entity
+Holds
+Who can read it
+Unit
+Name, details, parent unit
+Admin, commander (own unit)
+Personnel
+Tokenised service ID, unit, masked display name
+Admin, commander (own unit), welfare (assigned)
+HRMS record
+Leave, duty, transfers, training
+Admin, commander (own unit), welfare (assigned)
+Remark
+Tags, encrypted text, visibility level, expiry
+Per visibility level
+Status
+Observed and assessed values, history and reasons
+Commander, welfare
+Self-assessment and chat session
+Responses, encrypted transcript, tier
+The person; welfare only via minimal alert or consent
+Health summary
+Daily sleep, heart rate and activity summaries
+The person; welfare (consented); commander gets a coarse chip only
+Case and counsellor note
+Notes, follow-ups, outcomes
+Counsellors and welfare officers only
+Audit log
+Actor, action, target, time
+Admin and oversight role, append-only
+11. Suggested build order
+Phase 1: authentication, roles, database schemas, encryption, audit log.
+Phase 2: Dashboard 1 (units, personnel, HRMS upload, remarks, status).
+Phase 3: Dashboard 2 (status view, alert inbox, case notes).
+Phase 4: Dashboard 3 (self-assessment, chatbot with tiers, counsellor request).
+Phase 5: health-tracker sync with consent controls.
+Phase 6: risk model, remark analysis, analytics, security testing and demo data.
+Use synthetic data only during development. Do not load real personnel data into a prototype.
